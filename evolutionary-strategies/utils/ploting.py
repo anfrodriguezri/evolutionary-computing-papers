@@ -28,6 +28,7 @@ def save(type, name, data=None):
 
 
 def get_convergence_point(fitness, max_iter):
+    return max_iter - 1
     last_fitness = None
     for i, f in enumerate(fitness):
         if f == last_fitness:
@@ -47,11 +48,11 @@ def plot(fitness, title=None, name=None):
     max_iter = median.size
 
     convergence_point = get_convergence_point(median, max_iter)
-    
+
     x = np.arange(0, max_iter)
     y = avg
 
-    every = 1
+    every = 10
 
     ls = 'dotted'
 
