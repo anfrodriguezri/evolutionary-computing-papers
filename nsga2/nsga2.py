@@ -14,9 +14,9 @@ def tournament(pop, num_parents, k=20):
     return selected_parents
 
 # Initialize population
-def pop_init(pop_size, limits):
+def pop_init(pop_size, num_dims, limits):
 	min_lim, max_lim = limits
-	return [Individual(np.random.uniform(min_lim, max_lim)) for i in range(pop_size)]
+	return [Individual(np.random.uniform(min_lim, max_lim, size=num_dims)) for i in range(pop_size)]
 
 """
 	Genetic Operators
@@ -31,13 +31,13 @@ def mutation(individual, sigma):
 
 # Recombination
 def recombination(parent1, parent2):
-	cross_point = np.random.randint(1, len(parent1.chromosome)-1)
+	cross_point = np.random.randint(1, len(parent1.chromosome))
 
 	child1 = Individual(
-		chromosome = np.append(parent1[:cross_point], parent2[cross_point:]),
+		chromosome = np.append(parent1.chromosome[:cross_point], parent2.chromosome[cross_point:]),
 	)
 	child2 = Individual(
-		chromosome = np.append(parent2[:cross_point], parent1[cross_point:]),
+		chromosome = np.append(parent2.chromosome[:cross_point], parent1.chromosome[cross_point:]),
 	)
 	
 	return [ child1, child2 ]
@@ -101,13 +101,13 @@ def fast_non_dominated_sort(P, objectives):
 def crowding_distance_assignment(I, objectives):
 	l = len(I)
 	for m in objectives:
-		I.sort(key=lambda x: m(x.chromosome))
+		I.sort(key=lambda x: m.f(x.chromosome))
 		I[0].distance = I[-1].distance = float('inf')
 		for i in range(1, l-1):
-			I[i].distance += m(I[i+1].chromosome) - m(I[i-1].chromosome)
+			I[i].distance += m.f(I[i+1].chromosome) - m.f(I[i-1].chromosome)
 
 def main_loop(T, N, num_dims, objectives, limits):
-	P = pop_init(N, limits)
+	P = pop_init(N, num_dims, limits)
 	F = fast_non_dominated_sort(P, objectives)
 
 	selected = tournament(P, num_parents=20, k=2)
@@ -129,7 +129,7 @@ def main_loop(T, N, num_dims, objectives, limits):
 
 		i = 1
 		while len(P_next) < N:
-			crowding_distance_assignment(F[i])
+			crowding_distance_assignment(F[i], objectives)
 			P_next += F[i]
 			i += 1
 
@@ -146,6 +146,8 @@ def main_loop(T, N, num_dims, objectives, limits):
 
 		P = P_next
 		Q = Q_next
+
+		print([p.rank for p in P])
 
 	return P
 
